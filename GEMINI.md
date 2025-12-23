@@ -72,3 +72,7 @@ curl -X POST http://localhost:5000/webhook -H "Content-Type: application/json" -
 ## Development Notes
 *   **Security:** The current implementation uses `paramiko.AutoAddPolicy()`, which is not recommended for production as it is susceptible to Man-in-the-Middle (MitM) attacks.
 *   **Deployment:** The built-in Flask server is for development only. Use a production WSGI server like Gunicorn for deployment.
+
+## Agent Guidelines
+*   **Minimalism:** Do not create excessive tests, documentation, or random scripts unless explicitly requested or absolutely necessary for a critical verification that cannot be done otherwise.
+*   **Focus:** Stick strictly to the user's requested task. Avoid proactive "cleanup" or "enhancement" unless it directly addresses the core issue.
