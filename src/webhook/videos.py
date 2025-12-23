@@ -41,36 +41,41 @@ def perform_remote_copy(src: str, dst: str, config: dict) -> bool:
         if not exists(dirname(dst)):
             makedirs(dirname(dst))
         sftp_client.get(norm_src, dst)
-        logger.info(f"{dst} copied successfully")
+        current_app.logger.info(f"{dst} copied successfully")
         return True
     except paramiko.SSHException as e:
-        logger.error(f"SSH connection error: {e}")
+        current_app.logger.error(f"SSH connection error: {e}")
     except paramiko.SFTPError as e:
-        logger.error(f"sftp error: {e}")
+        current_app.logger.error(f"sftp error: {e}")
     except Exception as e:
-        logger.exception(f"Unexpected error during remote copy: {e}")
+        current_app.logger.exception(f"Unexpected error during remote copy: {e}")
     finally:
-        logger.debug("Closing ssh connection")
+        current_app.logger.debug("Closing ssh connection")
         client.close()
     return False
 
-def _background_copy_task(src, dst: str, config: dict):
+def _background_copy_task(src, dst: str, config: dict) -> bool:
     """Wrapper to run copy in background and log results."""
     try:
-        failed_files = perform_remote_copy(src, dst, config)
-        if failed_files:
-            logger.error(f"Failed to copy the following files: {failed_files}")
-        else:
-            logger.info("Background file copy completed successfully.")
+        if perform_remote_copy(src, dst, config):
+          current_app.logger.info("Background file copy completed successfully.")
+          return True
     except Exception as e:
-        logger.exception(f"Background task failed: {e}")
+        current_app.logger.exception(f"Background task failed: {e}")
+
+    current_app.logger.error(f"Failed to copy the following files: {src}")
+    return False
 
 def get_media_file():
     """
     Webhook handler that triggers an scp to get a media file.
     """
     payload = request.get_json(silent=True)
-    logger.debug(f"Received sync webhook with data: {pprint.pformat(payload)}")
+    if not payload:
+      current_app.logger.error("Received no payload")
+      return jsonify({"status": "error", "message": "no data"}), 401
+
+    current_app.logger.debug(f"Received sync webhook with data: {pprint.pformat(payload)}")
 
     config = {
         "SSH_HOST": current_app.config.get("SSH_HOST"),
@@ -81,9 +86,9 @@ def get_media_file():
 
     match payload["eventType"]:
       case "Download":
-        anime_or_tv = "Anime" if payload["series_type"] == "Anime" else "TV Shows"
+        anime_or_tv = "Anime" if payload.get("series_type") == "Anime" else "TV Shows"
         dst_file_path = join(
-          current_app.get("DEST_PATH", ""),
+          current_app.config.get("DEST_PATH", ""),
           anime_or_tv,
           payload["series"]["title"],
           payload["episodeFile"]["path"].split("/")[-1],
@@ -94,7 +99,7 @@ def get_media_file():
           args=(payload["episodeFile"]["path"], dst_file_path, config))
         thread.start()
       case _:
-        logger.warning(f"Unknown event type: {payload['event_type']}")
+        current_app.logger.warning(f"Unknown event type: {payload['event_type']}")
         return jsonify({"status": "unknown", "message": "webhook operation unknown"}), 404
 
     return jsonify({"status": "success", "message": "File copy initiated in background"}), 202

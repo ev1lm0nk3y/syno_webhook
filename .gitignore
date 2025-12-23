@@ -40,3 +40,6 @@ ENV/
 # Editor directories
 .idea/
 .vscode/
+
+# ipykernel/jupyter
+share
