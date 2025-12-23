@@ -27,6 +27,7 @@ wheels/
 MANIFEST
 
 # Virtual Environments
+bin/
 venv/
 env/
 ENV/

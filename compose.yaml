@@ -1,0 +1,19 @@
+services:
+  webhook:
+    image: syno-webhooks
+    container_name: webhooks
+    build:
+      context: .
+      args:
+        PUID: 1026
+        PGID: 100
+        USER: ryan
+    volumes:
+      - /volume1/video:/data
+      - /volume1/docker/syno-webhook:/config
+    restart: no
+    environment:
+      PUID: 1026
+      PGID: 100
+    ports:
+      - 5111:5111
