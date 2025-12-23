@@ -1,11 +1,12 @@
-from flask import Flask
-import os
-import dotenv
-import logging
-import sys
 import argparse
+import logging
+import os
+import sys
 
-from sync-webhook.webhook import bp as webhook_bp
+import dotenv
+from flask import Flask
+
+from webhook import bp as webhook_bp
 
 # Load env vars from .env file
 dotenv.load_dotenv()

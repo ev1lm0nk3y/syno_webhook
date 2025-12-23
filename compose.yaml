@@ -10,10 +10,11 @@ services:
         USER: ryan
     volumes:
       - /volume1/video:/data
-      - /volume1/docker/syno-webhook:/config
+      - /volume1/docker/syno_webhook/.env:/app/.env
     restart: no
     environment:
       PUID: 1026
       PGID: 100
+      DEST_PATH: /data
     ports:
       - 5111:5111
